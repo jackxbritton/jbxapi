@@ -346,6 +346,41 @@ class JoeSandbox(object):
         else:
             return filename
 
+    def get_download_stream(self, webid, type, run=None):
+        """
+        Download a resource for an analysis. E.g. the full report, binaries, screenshots.
+        The full list of resources can be found in our API documentation.
+
+        When `file` is given, the return value is the filename specified by the server,
+        otherwise it's a tuple of (filename, bytes).
+
+        Parameters:
+            webid: the webid of the analysis
+            type: the report type, e.g. 'html', 'bins'
+            run: specify the run. If it is None, let Joe Sandbox pick one
+
+        Example:
+
+            stream = joe.get_download_stream(123456, 'jsonfixed')
+
+        """
+
+        data = {
+            'apikey': self.apikey,
+            'webid': webid,
+            'type': type,
+            'run': run,
+        }
+
+        response = self._post(self.apiurl + "/v2/analysis/download", data=data, stream=True)
+
+        # do standard error handling when encountering an error (i.e. throw an exception)
+        if not response.ok:
+            self._raise_or_extract(response)
+            raise RuntimeError("Unreachable because statement above should raise.")
+
+        return response
+
     def search(self, query):
         """
         Lists the webids of the analyses that match the given query.
